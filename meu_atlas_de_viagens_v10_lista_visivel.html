@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Meu Atlas de Viagens — v10 Lista Visível</title>
+<style>
+:root{
+  --green:#176b57;--green2:#0f5142;--gold:#f1b653;--ink:#15212b;--muted:#66717c;
+  --bg:#f2f5f4;--card:#fff;--line:#e3e9e6;--shadow:0 18px 50px rgba(17,40,33,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;background:linear-gradient(180deg,#eef5f2,#f8faf9);color:var(--ink)}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.top{
+  min-height:310px;padding:calc(28px + env(safe-area-inset-top)) 20px 32px;color:white;
+  background:
+    linear-gradient(120deg,rgba(10,50,44,.94),rgba(26,83,100,.70)),
+    url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1500&q=85') center/cover;
+}
+.wrap{max-width:1020px;margin:auto}
+.brand{font-weight:900;letter-spacing:.12em;font-size:13px;text-transform:uppercase;opacity:.92}
+.top h1{font-size:clamp(34px,7vw,58px);line-height:1.02;margin:18px 0 10px;max-width:760px}
+.top p{font-size:17px;line-height:1.5;max-width:720px;opacity:.9}
+.search-wrap{position:relative;margin-top:24px;max-width:760px}
+.city-search{
+ width:100%;border:0;border-radius:18px;padding:18px 18px;font-size:18px;outline:none;
+ box-shadow:0 12px 40px rgba(0,0,0,.18);background:rgba(255,255,255,.98)
+}
+.suggestions{
+ position:absolute;top:calc(100% + 8px);left:0;right:0;background:white;color:var(--ink);
+ border-radius:17px;box-shadow:0 22px 60px rgba(0,0,0,.24);overflow:hidden;z-index:100;
+ max-height:330px;overflow-y:auto;display:none
+}
+.suggestions.show{display:block}
+.suggestion{width:100%;border:0;border-bottom:1px solid #edf0ef;background:white;padding:14px 16px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.suggestion:active,.suggestion:hover{background:#f0f7f4}
+.suggestion strong{font-size:16px}.suggestion small{color:#77818b}
+.dbstatus{margin-top:10px;font-size:12px;opacity:.8}
+.main{max-width:1020px;margin:-22px auto 50px;padding:0 16px;position:relative}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat{background:white;border-radius:18px;padding:16px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.stat strong{display:block;font-size:27px}.stat span{font-size:12px;color:var(--muted)}
+.empty{background:white;border:1px solid var(--line);border-radius:24px;padding:32px;text-align:center;box-shadow:var(--shadow)}
+.empty .globe{font-size:54px}.empty h2{margin:8px 0}.empty p{color:var(--muted)}
+.city-view{display:none}
+.hero{
+  min-height:300px;border-radius:28px;overflow:hidden;position:relative;display:flex;align-items:flex-end;color:white;
+  background:
+    linear-gradient(180deg,rgba(10,30,26,.05),rgba(10,30,26,.78)),
+    url('https://images.unsplash.com/photo-1526772662000-3f88f10405ff?auto=format&fit=crop&w=1500&q=85') center/cover;
+  box-shadow:var(--shadow)
+}
+.hero.has-photo{background-size:cover;background-position:center}
+.hero-inner{padding:26px;position:relative;z-index:2}
+.hero h2{font-size:42px;margin:0 0 6px}.hero p{margin:0;opacity:.9;font-size:16px}
+.badge{display:inline-block;background:rgba(255,255,255,.16);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.22);padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.card{background:white;border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 14px}
+.attraction-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.progress{height:9px;background:#ecf0ee;border-radius:999px;overflow:hidden;margin:10px 0 15px}.progress div{height:100%;background:linear-gradient(90deg,var(--green),#63a78f);width:0}
+.list{display:grid;gap:9px}
+.check{display:flex;align-items:center;gap:11px;padding:12px;border:1px solid var(--line);border-radius:13px;background:#fbfcfc}
+.check input{width:21px;height:21px;accent-color:var(--green)}
+.check.done span{text-decoration:line-through;color:#89918d}
+.addrow{display:flex;gap:8px;margin-top:13px}.addrow input{flex:1}
+input,textarea{border:1px solid #d7dfdb;border-radius:13px;padding:12px;outline:none;width:100%}
+input:focus,textarea:focus{border-color:#66a794;box-shadow:0 0 0 3px rgba(23,107,87,.09)}
+.btn{border:0;border-radius:13px;padding:11px 14px;background:var(--green);color:white;font-weight:800}
+.btn.secondary{background:#ecf4f1;color:var(--green)}
+.btn.danger{background:#a94b4b}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.photo{aspect-ratio:4/3;border-radius:15px;overflow:hidden;position:relative;background:#edf1ef}.photo img{width:100%;height:100%;object-fit:cover}
+.photo button{position:absolute;top:7px;right:7px;border:0;width:29px;height:29px;border-radius:50%;background:rgba(0,0,0,.63);color:white}
+.photo-add{display:inline-flex;align-items:center;gap:8px;background:#edf5f2;color:var(--green);font-weight:800;padding:11px 14px;border-radius:13px;cursor:pointer}.photo-add input{display:none}
+.field{display:grid;gap:6px;margin-bottom:12px}.field label{font-size:11px;text-transform:uppercase;font-weight:900;color:#69737d;letter-spacing:.05em}
+textarea{min-height:105px;resize:vertical}
+.saved-list{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;margin:15px 0 0}
+.saved-chip{white-space:nowrap;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);color:white;border-radius:999px;padding:8px 11px;font-size:12px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(18px);background:#143c32;color:white;padding:12px 17px;border-radius:999px;opacity:0;transition:.2s;z-index:9999;pointer-events:none;box-shadow:0 15px 40px rgba(0,0,0,.25);font-weight:800}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.inline-results{
+ position:static !important;
+ display:block !important;
+ margin-top:10px;
+ max-height:330px;
+ overflow-y:auto;
+ border-radius:16px;
+ background:rgba(255,255,255,.98);
+ color:var(--ink);
+ box-shadow:0 12px 34px rgba(0,0,0,.14);
+}
+.inline-results:empty{display:none !important}
+.inline-results .suggestion{
+ display:flex !important;
+ width:100%;
+ padding:14px 16px;
+ border:0;
+ border-bottom:1px solid #edf0ef;
+ background:#fff;
+ color:var(--ink);
+ text-align:left;
+ justify-content:space-between;
+ gap:10px;
+ align-items:center;
+}
+.inline-results .suggestion:last-child{border-bottom:0}
+.inline-results .suggestion strong{font-size:16px}
+.inline-results .suggestion small{font-size:12px;color:#69747e}
+.result-hint{padding:13px 15px;color:#66717c;font-size:13px}
+
+@media(max-width:720px){
+ .stats{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.gallery{grid-template-columns:1fr 1fr}
+ .top{min-height:340px}.hero h2{font-size:34px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+ <div class="wrap">
+  <div class="brand">✈ Meu Atlas · v10 · Lista visível</div>
+  <h1>Digite a cidade e escolha na lista.</h1>
+  <p>As opções aparecem logo abaixo do campo. Toque na cidade desejada e o Atlas abre automaticamente com estado, país e pontos turísticos.</p>
+  <div class="search-wrap">
+   <div style="display:flex;gap:8px;align-items:stretch">
+    <input id="citySearch" class="city-search"
+           placeholder="🔎 Digite: Salv, Cara, Paris..."
+           autocomplete="off"
+           oninput="runCitySearch()"
+           onkeyup="runCitySearch()"
+           onfocus="runCitySearch()"
+           style="flex:1">
+    <button type="button" class="btn" onclick="runCitySearch()" style="background:var(--gold);color:#1f2a25;white-space:nowrap">Buscar</button>
+   </div>
+   <div id="suggestions" class="suggestions inline-results">
+     <div class="result-hint">Digite pelo menos 2 letras. Ex.: <strong>Sal</strong></div>
+   </div>
+  </div>
+  <div id="dbStatus" class="dbstatus">Lista rápida pronta · carregando municípios brasileiros em segundo plano…</div>
+  <div id="savedChips" class="saved-list"></div>
+ </div>
+</header>
+
+<main class="main">
+ <section class="stats">
+  <div class="stat"><strong id="sCountries">0</strong><span>países</span></div>
+  <div class="stat"><strong id="sCities">0</strong><span>cidades</span></div>
+  <div class="stat"><strong id="sPhotos">0</strong><span>fotos</span></div>
+  <div class="stat"><strong id="sPoints">0%</strong><span>pontos visitados</span></div>
+ </section>
+
+ <section id="empty" class="empty">
+  <div class="globe">🌍</div>
+  <h2>Escolha uma cidade acima</h2>
+  <p>Não existe mais etapa de “Salvar cidade”. Tocar na sugestão já adiciona e abre a cidade.</p>
+ </section>
+
+ <section id="cityView" class="city-view">
+  <div id="hero" class="hero">
+   <div class="hero-inner">
+    <div class="badge">📍 VIAGEM SELECIONADA</div>
+    <h2 id="heroCity"></h2>
+    <p id="heroPlace"></p>
+   </div>
+  </div>
+
+  <div class="grid">
+   <div class="card">
+    <div class="attraction-head">
+     <div>
+      <h3>⭐ Pontos turísticos</h3>
+      <div id="pointStatus" style="font-size:13px;color:var(--muted)"></div>
+     </div>
+    </div>
+    <div class="progress"><div id="pointBar"></div></div>
+    <div id="pointList" class="list"></div>
+    <div class="addrow">
+     <input id="customPoint" placeholder="Adicionar outro lugar">
+     <button class="btn secondary" onclick="addCustomPoint()">＋</button>
+    </div>
+   </div>
+
+   <div class="card">
+    <h3>📖 Memórias</h3>
+    <div class="field"><label>Data da viagem</label><input id="tripDate" type="date" onchange="saveEdits()"></div>
+    <div class="field"><label>Com quem fui</label><input id="tripWith" placeholder="Ex.: família, amigos…" oninput="saveEdits()"></div>
+    <div class="field"><label>Minha história</label><textarea id="tripNotes" placeholder="Escreva o que marcou essa viagem…" oninput="saveEdits()"></textarea></div>
+    <button class="btn danger" onclick="deleteCurrent()">Excluir esta cidade</button>
+   </div>
+
+   <div class="card" style="grid-column:1/-1">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+     <div><h3 style="margin-bottom:4px">📸 Álbum</h3><div style="font-size:13px;color:var(--muted)">A primeira foto vira a capa da cidade.</div></div>
+     <label class="photo-add">＋ Adicionar fotos<input id="photos" type="file" accept="image/*" multiple onchange="addPhotos(event)"></label>
+    </div>
+    <div id="gallery" class="gallery"></div>
+   </div>
+  </div>
+ </section>
+</main>
+<div id="toast" class="toast"></div>
+
+<script>
+const KEY='meuAtlasV7';
+const IBGE_KEY='meuAtlasMunicipiosIBGEv2';
+let trips=[];
+let currentId=null;
+let brazilCities=[];
+let SEARCH_INDEX=[];
+let searchTimer=null;
+
+const FALLBACK_CITIES=[
+ ['Salvador','BA','Brasil'],['Caraíva','BA','Brasil'],['Porto Seguro','BA','Brasil'],['Trancoso','BA','Brasil'],
+ ['Morro de São Paulo','BA','Brasil'],['Lençóis','BA','Brasil'],['Irecê','BA','Brasil'],['Xique-Xique','BA','Brasil'],
+ ['Feira de Santana','BA','Brasil'],['Ilhéus','BA','Brasil'],['Itacaré','BA','Brasil'],['Praia do Forte','BA','Brasil'],
+ ['Rio de Janeiro','RJ','Brasil'],['São Paulo','SP','Brasil'],['Brasília','DF','Brasil'],['Belo Horizonte','MG','Brasil'],
+ ['Recife','PE','Brasil'],['Porto de Galinhas','PE','Brasil'],['Fortaleza','CE','Brasil'],['Jericoacoara','CE','Brasil'],
+ ['Maceió','AL','Brasil'],['Aracaju','SE','Brasil'],['João Pessoa','PB','Brasil'],['Natal','RN','Brasil'],
+ ['Florianópolis','SC','Brasil'],['Gramado','RS','Brasil'],['Curitiba','PR','Brasil'],['Foz do Iguaçu','PR','Brasil'],
+ ['Manaus','AM','Brasil'],['Belém','PA','Brasil'],['São Luís','MA','Brasil'],['Bonito','MS','Brasil'],
+ ['Paris','','França'],['Nice','','França'],['Lyon','','França'],['Roma','','Itália'],['Milão','','Itália'],
+ ['Veneza','','Itália'],['Florença','','Itália'],['Lisboa','','Portugal'],['Porto','','Portugal'],['Sintra','','Portugal'],
+ ['Madrid','','Espanha'],['Barcelona','','Espanha'],['Sevilha','','Espanha'],['Londres','','Reino Unido'],
+ ['Amsterdã','','Países Baixos'],['Bruxelas','','Bélgica'],['Berlim','','Alemanha'],['Munique','','Alemanha'],
+ ['Praga','','República Tcheca'],['Viena','','Áustria'],['Budapeste','','Hungria'],['Atenas','','Grécia'],
+ ['Santorini','','Grécia'],['Istambul','','Turquia'],['Zurique','','Suíça'],['Interlaken','','Suíça'],
+ ['Nova York','NY','Estados Unidos'],['Miami','FL','Estados Unidos'],['Orlando','FL','Estados Unidos'],
+ ['Los Angeles','CA','Estados Unidos'],['San Francisco','CA','Estados Unidos'],['Las Vegas','NV','Estados Unidos'],
+ ['Toronto','ON','Canadá'],['Vancouver','BC','Canadá'],['Montreal','QC','Canadá'],
+ ['Buenos Aires','','Argentina'],['Bariloche','','Argentina'],['Santiago','','Chile'],['Lima','','Peru'],['Cusco','','Peru'],
+ ['Bogotá','','Colômbia'],['Cartagena','','Colômbia'],['Montevidéu','','Uruguai'],['Punta del Este','','Uruguai'],
+ ['Tóquio','','Japão'],['Kyoto','','Japão'],['Osaka','','Japão'],['Seul','','Coreia do Sul'],
+ ['Bangkok','','Tailândia'],['Phuket','','Tailândia'],['Singapura','','Singapura'],['Dubai','','Emirados Árabes Unidos'],
+ ['Cairo','','Egito'],['Marrakech','','Marrocos'],['Cidade do Cabo','','África do Sul'],
+ ['Sydney','NSW','Austrália'],['Melbourne','VIC','Austrália'],['Auckland','','Nova Zelândia']
+];
+
+const ATTRACTIONS={
+ 'salvador|brasil':['Pelourinho','Elevador Lacerda','Mercado Modelo','Farol da Barra','Igreja do Bonfim','Rio Vermelho','Solar do Unhão','Dique do Tororó','Museu de Arte Moderna da Bahia','Praia do Porto da Barra'],
+ 'caraiva|brasil':['Vila de Caraíva','Praia de Caraíva','Rio Caraíva','Barra do Rio Caraíva','Ponta do Corumbau','Praia do Satu','Aldeia Pataxó','Forró de Caraíva'],
+ 'porto seguro|brasil':['Centro Histórico','Passarela da Cultura','Memorial da Epopeia do Descobrimento','Praia de Taperapuã','Reserva da Jaqueira','Coroa Vermelha'],
+ 'trancoso|brasil':['Quadrado de Trancoso','Igreja de São João Batista','Praia dos Nativos','Praia dos Coqueiros','Praia do Espelho','Praia de Itapororoca'],
+ 'morro de sao paulo|brasil':['Primeira Praia','Segunda Praia','Terceira Praia','Quarta Praia','Farol do Morro','Tirolesa','Fortaleza do Tapirandu','Pôr do sol na Toca do Morcego'],
+ 'rio de janeiro|brasil':['Cristo Redentor','Pão de Açúcar','Praia de Copacabana','Praia de Ipanema','Escadaria Selarón','Jardim Botânico','Parque Lage','Museu do Amanhã','Maracanã','Arcos da Lapa'],
+ 'sao paulo|brasil':['Avenida Paulista','MASP','Parque Ibirapuera','Mercado Municipal','Pinacoteca','Liberdade','Beco do Batman','Museu do Ipiranga'],
+ 'brasilia|brasil':['Congresso Nacional','Catedral Metropolitana','Praça dos Três Poderes','Palácio da Alvorada','Pontão do Lago Sul','Memorial JK'],
+ 'recife|brasil':['Marco Zero','Recife Antigo','Instituto Ricardo Brennand','Oficina Brennand','Praia de Boa Viagem','Embaixada dos Bonecos Gigantes'],
+ 'fortaleza|brasil':['Praia do Futuro','Beira-Mar','Mercado Central','Centro Dragão do Mar','Beach Park','Ponte dos Ingleses'],
+ 'paris|franca':['Torre Eiffel','Museu do Louvre','Arco do Triunfo','Champs-Élysées','Montmartre','Basílica de Sacré-Cœur','Notre-Dame','Jardim de Luxemburgo','Museu d’Orsay','Palácio de Versalhes'],
+ 'roma|italia':['Coliseu','Fórum Romano','Fontana di Trevi','Panteão','Piazza Navona','Vaticano','Basílica de São Pedro','Castel Sant’Angelo','Villa Borghese'],
+ 'lisboa|portugal':['Torre de Belém','Mosteiro dos Jerónimos','Praça do Comércio','Castelo de São Jorge','Alfama','Elevador de Santa Justa','LX Factory','Miradouro da Senhora do Monte'],
+ 'nova york|estados unidos':['Times Square','Central Park','Estátua da Liberdade','Empire State Building','Brooklyn Bridge','Rockefeller Center','The High Line','Grand Central Terminal','One World Observatory','Metropolitan Museum of Art'],
+ 'buenos aires|argentina':['Obelisco','Casa Rosada','Puerto Madero','Caminito','Recoleta','Teatro Colón','Floralis Genérica','Palermo Soho'],
+ 'toquio|japao':['Shibuya Crossing','Senso-ji','Tokyo Skytree','Meiji Jingu','Shinjuku','Tokyo Tower','Mercado de Toyosu','teamLab'],
+ 'dubai|emirados arabes unidos':['Burj Khalifa','Dubai Mall','Dubai Fountain','Palm Jumeirah','Dubai Marina','Museu do Futuro','Dubai Frame','Deserto de Dubai']
+};
+
+function norm(v=''){
+ return String(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+}
+function esc(v=''){
+ return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function loadTrips(){
+ try{trips=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(trips))trips=[]}catch(e){trips=[]}
+ renderStats();renderSaved();
+ if(trips.length){currentId=trips[0].id;renderCurrent()}
+}
+function persist(){
+ try{localStorage.setItem(KEY,JSON.stringify(trips))}catch(e){showToast('Armazenamento do navegador indisponível')}
+ renderStats();renderSaved();
+}
+function showToast(msg){
+ const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700)
+}
+function renderStats(){
+ const countries=new Set(trips.map(t=>norm(t.country))).size;
+ const photos=trips.reduce((n,t)=>n+(t.photos?.length||0),0);
+ const pts=trips.flatMap(t=>t.points||[]), done=pts.filter(p=>p.done).length;
+ document.getElementById('sCountries').textContent=countries;
+ document.getElementById('sCities').textContent=trips.length;
+ document.getElementById('sPhotos').textContent=photos;
+ document.getElementById('sPoints').textContent=(pts.length?Math.round(done/pts.length*100):0)+'%';
+}
+function renderSaved(){
+ const box=document.getElementById('savedChips');
+ box.innerHTML=trips.slice(0,12).map(t=>`<button class="saved-chip" onclick="openSaved('${t.id}')">${esc(t.city)}</button>`).join('');
+}
+function openSaved(id){currentId=id;renderCurrent();document.getElementById('cityView').scrollIntoView({behavior:'smooth'})}
+function buildSearchIndex(){
+ const map=new Map();
+ const source=[...brazilCities,...FALLBACK_CITIES];
+ for(const c of source){
+   if(!c || !c[0]) continue;
+   const city=c[0]||'', state=c[1]||'', country=c[2]||'';
+   const key=norm(city+'|'+state+'|'+country);
+   if(map.has(key)) continue;
+   map.set(key,{
+     city,state,country,
+     nCity:norm(city),
+     nAll:norm(city+' '+state+' '+country)
+   });
+ }
+ SEARCH_INDEX=[...map.values()].sort((a,b)=>a.nCity.localeCompare(b.nCity,'pt-BR'));
+}
+
+function runCitySearch(){
+ const input=document.getElementById('citySearch');
+ const box=document.getElementById('suggestions');
+ if(!input || !box) return;
+
+ const q=norm(input.value||'');
+
+ if(q.length<2){
+   box.innerHTML='<div class="result-hint">Digite pelo menos 2 letras. Ex.: <strong>Sal</strong></div>';
+   return;
+ }
+
+ const starts=[];
+ const contains=[];
+
+ for(const item of SEARCH_INDEX){
+   if(item.nCity.startsWith(q)){
+     starts.push(item);
+     if(starts.length>=12) break;
+   }
+ }
+
+ if(starts.length<8){
+   for(const item of SEARCH_INDEX){
+     if(starts.length+contains.length>=12) break;
+     if(!item.nCity.startsWith(q) && item.nAll.includes(q)){
+       contains.push(item);
+     }
+   }
+ }
+
+ const results=[...starts,...contains].slice(0,12);
+
+ if(!results.length){
+   box.innerHTML='<div class="result-hint">Nenhuma cidade encontrada com esse texto.</div>';
+   return;
+ }
+
+ box.innerHTML=results.map(c=>`
+   <button type="button" class="suggestion"
+     onclick='selectCity(${JSON.stringify(c.city)},${JSON.stringify(c.state)},${JSON.stringify(c.country)})'>
+     <strong>📍 ${esc(c.city)}</strong>
+     <small>${esc([c.state,c.country].filter(Boolean).join(' · '))}</small>
+   </button>
+ `).join('');
+}
+
+function searchCities(){runCitySearch();}
+function selectCity(city,state,country){
+ const resultsBox=document.getElementById('suggestions');
+ if(resultsBox) resultsBox.innerHTML='<div class="result-hint">Digite outra cidade para adicionar.</div>';
+ document.getElementById('citySearch').value='';
+ let t=trips.find(x=>norm(x.city)===norm(city)&&norm(x.country)===norm(country)&&norm(x.state)===norm(state));
+ if(!t){
+   const preset=ATTRACTIONS[norm(city)+'|'+norm(country)]||[];
+   t={id:uid(),city,state:state||'',country,date:'',with:'',notes:'',photos:[],points:preset.map(name=>({name,done:false}))};
+   trips.unshift(t);persist();showToast('✓ Cidade adicionada automaticamente');
+ }
+ currentId=t.id;renderCurrent();
+ setTimeout(()=>document.getElementById('cityView').scrollIntoView({behavior:'smooth',block:'start'}),30);
+}
+function current(){return trips.find(t=>t.id===currentId)}
+function renderCurrent(){
+ const t=current();if(!t)return;
+ document.getElementById('empty').style.display='none';
+ document.getElementById('cityView').style.display='block';
+ document.getElementById('heroCity').textContent=t.city;
+ document.getElementById('heroPlace').textContent=[t.state,t.country].filter(Boolean).join(' · ');
+ document.getElementById('tripDate').value=t.date||'';
+ document.getElementById('tripWith').value=t.with||'';
+ document.getElementById('tripNotes').value=t.notes||'';
+ const hero=document.getElementById('hero');
+ if(t.photos?.length){hero.classList.add('has-photo');hero.style.backgroundImage=`linear-gradient(180deg,rgba(10,30,26,.05),rgba(10,30,26,.78)),url("${t.photos[0].data}")`}
+ else{hero.classList.remove('has-photo');hero.style.backgroundImage=''}
+ renderPoints();renderGallery();
+}
+function renderPoints(){
+ const t=current(), pts=t.points||[], done=pts.filter(p=>p.done).length;
+ document.getElementById('pointStatus').textContent=pts.length?`${done} de ${pts.length} visitados`:'Ainda não há sugestões automáticas para esta cidade. Adicione seus lugares abaixo.';
+ document.getElementById('pointBar').style.width=(pts.length?Math.round(done/pts.length*100):0)+'%';
+ document.getElementById('pointList').innerHTML=pts.map((p,i)=>`
+  <label class="check ${p.done?'done':''}">
+   <input type="checkbox" ${p.done?'checked':''} onchange="togglePoint(${i})"><span>${esc(p.name)}</span>
+  </label>`).join('');
+}
+function togglePoint(i){const t=current();t.points[i].done=!t.points[i].done;persist();renderPoints()}
+function addCustomPoint(){
+ const input=document.getElementById('customPoint'),name=input.value.trim();if(!name)return;
+ const t=current();t.points=t.points||[];t.points.push({name,done:false});input.value='';persist();renderPoints()
+}
+function saveEdits(){
+ const t=current();if(!t)return;
+ t.date=document.getElementById('tripDate').value;
+ t.with=document.getElementById('tripWith').value;
+ t.notes=document.getElementById('tripNotes').value;
+ persist()
+}
+function deleteCurrent(){
+ const t=current();if(!t||!confirm(`Excluir ${t.city}?`))return;
+ trips=trips.filter(x=>x.id!==t.id);persist();currentId=trips[0]?.id||null;
+ if(currentId)renderCurrent();else{document.getElementById('cityView').style.display='none';document.getElementById('empty').style.display='block'}
+}
+function fileToData(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
+async function addPhotos(e){
+ const t=current();if(!t)return;
+ for(const f of [...e.target.files]){try{t.photos.push({name:f.name,data:await fileToData(f)})}catch(_){}}
+ e.target.value='';persist();renderCurrent()
+}
+function renderGallery(){
+ const t=current();document.getElementById('gallery').innerHTML=(t.photos||[]).length?t.photos.map((p,i)=>`
+ <div class="photo"><img src="${p.data}"><button onclick="deletePhoto(${i})">✕</button></div>`).join(''):
+ '<div style="grid-column:1/-1;color:var(--muted);padding:18px 0">Nenhuma foto adicionada ainda.</div>'
+}
+function deletePhoto(i){const t=current();t.photos.splice(i,1);persist();renderCurrent()}
+
+function stateFromMunicipio(m){
+ try{
+  return m.microrregiao?.mesorregiao?.UF?.sigla ||
+         m['regiao-imediata']?.['regiao-intermediaria']?.UF?.sigla || '';
+ }catch(_){return ''}
+}
+async function loadBrazil(){
+ try{
+  const cache=JSON.parse(localStorage.getItem(IBGE_KEY)||'[]');
+  if(Array.isArray(cache)&&cache.length>5000){
+   brazilCities=cache;
+   buildSearchIndex();
+   document.getElementById('dbStatus').textContent=`✓ ${brazilCities.length.toLocaleString('pt-BR')} municípios brasileiros disponíveis · busca rápida ativa`;
+   return;
+  }
+ }catch(_){}
+ document.getElementById('dbStatus').textContent='Carregando todos os municípios do Brasil pelo IBGE…';
+ try{
+  const r=await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome');
+  if(!r.ok)throw new Error();
+  const data=await r.json();
+  brazilCities=data.map(m=>[m.nome,stateFromMunicipio(m),'Brasil']);
+  buildSearchIndex();
+  if(brazilCities.length>5000){
+   try{localStorage.setItem(IBGE_KEY,JSON.stringify(brazilCities))}catch(_){}
+   document.getElementById('dbStatus').textContent=`✓ ${brazilCities.length.toLocaleString('pt-BR')} municípios brasileiros disponíveis`;
+  }else throw new Error();
+ }catch(e){
+  brazilCities=FALLBACK_CITIES.filter(x=>x[2]==='Brasil');
+  buildSearchIndex();
+  document.getElementById('dbStatus').textContent='Sem acesso ao IBGE agora — usando cidades principais com busca rápida.';
+ }
+}
+
+(()=>{loadTrips();
+ buildSearchIndex();
+ const testMode=new URLSearchParams(location.search).get('test')==='1';
+ if(!testMode) loadBrazil();
+ if(testMode){
+   brazilCities=FALLBACK_CITIES.filter(x=>x[2]==='Brasil');
+   buildSearchIndex();
+   selectCity('Salvador','BA','Brasil');
+   setTimeout(()=>{
+     const t=current();
+     document.body.setAttribute('data-test-result',
+       t&&t.city==='Salvador'&&t.state==='BA'&&t.country==='Brasil'&&t.points.length>=5?'PASS':'FAIL');
+   },50);
+ }
+})();
+</script>
+</body>
+</html>
